@@ -44,7 +44,7 @@ module SolidCache
           if active_record_instrumentation?
             block.call
           else
-            Record.disable_instrumentation(&block)
+            Entry.disable_instrumentation(&block)
           end
         end
     end

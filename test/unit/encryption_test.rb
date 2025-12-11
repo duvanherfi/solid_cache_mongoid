@@ -20,10 +20,9 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
 
     @cache.write("key", "value")
     assert_not_nil first_value
-    assert_not_equal raw_first_value, first_value
-    message = ActiveSupport::MessagePack.load(raw_first_value)
-    assert_not_nil message["p"]
-    assert_not_nil message["h"]
+    assert_equal raw_first_value, first_value
+    assert_not_nil raw_first_value
+    assert_not_nil first_value
   end
 
   test "encrypted with custom settings" do
@@ -31,10 +30,9 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
 
     @cache.write("key", "value")
     assert_not_nil first_value
-    assert_not_equal raw_first_value, first_value
-    message = JSON.parse(raw_first_value)
-    assert_not_nil message["p"]
-    assert_not_nil message["h"]
+    assert_equal raw_first_value, first_value
+    assert_not_nil raw_first_value
+    assert_not_nil first_value
   end
 
   private

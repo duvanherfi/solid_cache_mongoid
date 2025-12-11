@@ -1,8 +1,9 @@
 default: &default
-  database: solid_cache_dummy
+  database: solid_cache
   encrypt: true
   encryption_context_properties:
     deterministic: true
+
   store_options:
     max_age: 3600
     max_size:

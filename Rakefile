@@ -25,7 +25,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :database, :no_database, :client, :collection, :encrypted ]
+  [ :default, :database, :no_database, :client, :collection, :encrypted, :encrypted_custom ]
 end
 
 task :test do

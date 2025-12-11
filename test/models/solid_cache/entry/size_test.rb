@@ -45,7 +45,7 @@ module SolidCache
       Entry.where(:id.lte => first_mod).delete_all
 
       assert_equal @encrypted ? 650766 : 480936, Entry.estimated_size(samples: 1000)
-      assert_equal @encrypted ? 481941 : 481941, Entry.estimated_size(samples: 501)
+      assert_equal @encrypted ? 652281 : 481941, Entry.estimated_size(samples: 501)
     end
 
     test "overestimate when all samples sizes are the same" do

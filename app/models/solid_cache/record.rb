@@ -1,31 +1,33 @@
 # frozen_string_literal: true
 
 module SolidCache
-  class Record
+  module Record
+    extend ActiveSupport::Concern
     include Mongoid::Document
     include Mongoid::Timestamps
     include Mongoid::Locker
+    included do
+      NULL_INSTRUMENTER = ActiveSupport::Notifications::Instrumenter.new(ActiveSupport::Notifications::Fanout.new)
 
-    NULL_INSTRUMENTER = ActiveSupport::Notifications::Instrumenter.new(ActiveSupport::Notifications::Fanout.new)
+      encrypt_with(key_id: ENV.fetch("SOLID_CACHE_KEY_ENCRYPT", nil) || Rails.application.secret_key_base) if SolidCache.configuration.encrypt?
 
-    encrypt_with(key_id: ENV.fetch("SOLID_CACHE_KEY_ENCRYPT", nil) || Rails.application.secret_key_base) if SolidCache.configuration.encrypt?
+      field :key, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
+      field :value, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
+      field :key_hash, type: Integer
+      field :byte_size, type: Integer
+      field :locking_name, type: String
+      field :locked_at, type: Time
 
-    field :key, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
-    field :value, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
-    field :key_hash, type: Integer
-    field :byte_size, type: Integer
-    field :locking_name, type: String
-    field :locked_at, type: Time
+      index({ byte_size: 1 })
+      index({ key_hash: 1, byte_size: 1 })
+      index({ key_hash: 1 }, { unique: true })
 
-    index({ byte_size: 1 })
-    index({ key_hash: 1, byte_size: 1 })
-    index({ key_hash: 1 }, { unique: true })
+      store_in collection: SolidCache.configuration.collection if SolidCache.configuration.collection.present?
+      store_in client: SolidCache.configuration.client if SolidCache.configuration.client.present?
+      store_in database: SolidCache.configuration.database if SolidCache.configuration.database.present?
+    end
 
-    store_in collection: SolidCache.configuration.collection if SolidCache.configuration.collection.present?
-    store_in client: SolidCache.configuration.client if SolidCache.configuration.client.present?
-    store_in database: SolidCache.configuration.database if SolidCache.configuration.database.present?
-
-    class << self
+    class_methods do
       def disable_instrumentation(&block)
         with_instrumenter(NULL_INSTRUMENTER, &block)
       end
@@ -73,5 +75,3 @@ module SolidCache
     end
   end
 end
-
-ActiveSupport.run_load_hooks :solid_cache, SolidCache::Record

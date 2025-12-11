@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 module SolidCache
-  class Entry < Record
-    include Expiration, Size, Mongoid::Locker
+  class Entry
+    include Record
+    include Expiration
+    include Size
+    include Mongoid::Locker
 
     # The estimated cost of an extra row in bytes, including fixed size columns, overhead, indexes and free space
     # Based on experimentation on SQLite, MySQL and Postgresql.
@@ -32,7 +35,7 @@ module SolidCache
               obj.assign_attributes(payload)
               obj.key = BSON::Binary.new(key)
               obj.value = BSON::Binary.new(value)
-              obj.save
+              obj.save!
             end
           end
         end
