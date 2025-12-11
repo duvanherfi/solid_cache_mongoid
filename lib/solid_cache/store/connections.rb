@@ -3,7 +3,6 @@
 module SolidCache
   class Store
     module Connections
-
       def initialize(options = {})
         super(options)
       end

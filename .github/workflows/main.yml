@@ -44,9 +44,5 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-      - name: Setup test database
-        run: |
-          sleep 2
-          bin/rails db:setup
       - name: Run tests
         run: bundle exec rake test

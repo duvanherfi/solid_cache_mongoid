@@ -15,7 +15,6 @@ module SolidCache
       end
 
       private
-
         def connection_stats
           oldest_created_at = Entry.order_by([:id, :asc]).pick(:created_at)
 

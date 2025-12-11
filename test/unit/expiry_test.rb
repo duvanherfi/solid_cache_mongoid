@@ -81,7 +81,6 @@ class SolidCache::ExpiryTest < ActiveSupport::TestCase
       SolidCache::Store.any_instance.stubs(:rand).returns(0)
 
       @cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_batch_size: 3, namespace: @namespace, max_entries: 2, expiry_method: expiry_method)
-      default_shard_keys = "key4"
 
       @cache.write("key4", 1)
       @cache.write("key44", 2)

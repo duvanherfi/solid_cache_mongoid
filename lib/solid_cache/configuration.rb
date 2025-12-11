@@ -8,7 +8,6 @@ module SolidCache
       store_options: {}, database: nil, collection: nil, client: nil,
       executor: nil, encrypt: false, encryption_context_properties: nil, size_estimate_samples: 10_000
     )
-
       @store_options = store_options
       @size_estimate_samples = size_estimate_samples
       @executor = executor
@@ -25,7 +24,6 @@ module SolidCache
     end
 
     private
-
       def default_encryption_context_properties
         { deterministic: false }
       end
