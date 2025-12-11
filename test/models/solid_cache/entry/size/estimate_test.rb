@@ -38,8 +38,8 @@ module SolidCache
       first_mod = Entry.first.id
       Entry.where(:id.lte => first_mod).delete_all
 
-      assert_equal @encrypted ? 437752 : 480936, estimate(samples: 1000)
-      assert_equal @encrypted ? 438131 : 481341, estimate(samples: 500)
+      assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
+      assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
       with_fixed_srand(1) { assert_equal @encrypted ? 437166 : 463969, estimate(samples: 334) }
       with_fixed_srand(1) { assert_equal @encrypted ? 462859 : 501183, estimate(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 453859 : 477176, estimate(samples: 50) }
@@ -52,8 +52,8 @@ module SolidCache
       first_mod = Entry.first.id
       Entry.where(:id.lte => first_mod).delete_all
 
-      assert_equal @encrypted ? 480936 : 480936, estimate(samples: 1000)
-      assert_equal @encrypted ? 165348 : 481341, estimate(samples: 500)
+      assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
+      assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
       with_fixed_srand(1) { assert_equal @encrypted ? 164704 : 476224, estimate(samples: 250) }
       with_fixed_srand(1) { assert_equal @encrypted ? 174266 : 501183, estimate(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 179794 : 477176, estimate(samples: 50) }

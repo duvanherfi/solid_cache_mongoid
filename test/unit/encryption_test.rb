@@ -39,10 +39,10 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
 
   private
     def raw_first_value
-      SolidCache::Entry.first["value"].data.b
+      SolidCache::Entry.first["value"].data
     end
 
     def first_value
-      SolidCache::Entry.first.value.data.b
+      SolidCache::Entry.first.value.data
     end
 end

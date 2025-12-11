@@ -28,7 +28,7 @@ module SolidCache
               # Convertir key y value a BSON::Binary
               key = payload.delete(:key)
               value = payload.delete(:value)
-              obj = where(key_hash: payload[:key_hash]).find_or_initialize_by(payload)
+              obj = where(key_hash: payload[:key_hash]).first_or_initialize
               obj.assign_attributes(payload)
               obj.key = BSON::Binary.new(key)
               obj.value = BSON::Binary.new(value)

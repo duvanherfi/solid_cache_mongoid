@@ -13,7 +13,7 @@ module EncodedKeyCacheBehavior
       assert @cache.delete(key)
       assert_equal "2", @cache.fetch(key, raw: true) { "2" }
       assert_equal 3, @cache.increment(key)
-      assert_equal 1, @cache.decrement(key)
+      assert_equal 2, @cache.decrement(key)
     end
   end
 
@@ -25,7 +25,7 @@ module EncodedKeyCacheBehavior
     assert @cache.delete(key)
     assert_equal "2", @cache.fetch(key, raw: true) { "2" }
     assert_equal 3, @cache.increment(key)
-    assert_equal 1, @cache.decrement(key)
+    assert_equal 2, @cache.decrement(key)
   end
 
   def test_retains_encoding

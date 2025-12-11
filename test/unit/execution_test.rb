@@ -35,7 +35,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_uninstrumented
-    SolidCache::Entry.any_of.stubs(:collection).raises(Mongo::Error::TimeoutError)
+    SolidCache::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
@@ -49,7 +49,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_instrumented
-    SolidCache::Entry.stubs(:collection).raises(Mongo::Error::TimeoutError)
+    SolidCache::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
 
     cache = lookup_store(expires_in: 60)
 

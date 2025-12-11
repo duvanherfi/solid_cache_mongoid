@@ -17,9 +17,9 @@ module SolidCache
     field :locking_name, type: String
     field :locked_at, type: Time
 
-    index({ byte_size: 1 }, { background: true })
-    index({ key_hash: 1, byte_size: 1 }, { background: true })
-    index({ key_hash: 1 }, { unique: true, background: true })
+    index({ byte_size: 1 })
+    index({ key_hash: 1, byte_size: 1 })
+    index({ key_hash: 1 }, { unique: true })
 
     store_in collection: SolidCache.configuration.collection if SolidCache.configuration.collection.present?
     store_in client: SolidCache.configuration.client if SolidCache.configuration.client.present?

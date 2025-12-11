@@ -20,6 +20,8 @@ class ActiveSupport::TestCase
   setup do
     @all_stores = []
     SolidCache::Entry.delete_all
+    SolidCache::Entry.remove_indexes
+    SolidCache::Entry.create_indexes
   end
 
   teardown do
@@ -39,11 +41,9 @@ class ActiveSupport::TestCase
   end
 
   def send_entries_back_in_time(distance)
-    @cache.with_each_connection do
-      SolidCache::Entry.uncached do
-        SolidCache::Entry.all.each do |entry|
-          entry.update_attributes(created_at: entry.created_at - distance)
-        end
+    SolidCache::Entry.uncached do
+      SolidCache::Entry.all.each do |entry|
+        entry.update_attributes(created_at: entry.created_at - distance)
       end
     end
   end
