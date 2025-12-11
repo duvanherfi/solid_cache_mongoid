@@ -671,7 +671,7 @@ module CacheStoreBehavior
     assert @cache.delete(absurd_key)
     assert_equal "2", @cache.fetch(absurd_key, raw: true) { "2" }
     assert_equal 3, @cache.increment(absurd_key)
-    assert_equal 2, @cache.decrement(absurd_key)
+    assert_equal 1, @cache.decrement(absurd_key)
   end
 
   def test_really_long_keys

@@ -25,7 +25,7 @@ def run_without_aborting(*tasks)
 end
 
 def configs
-  [ :default, :connects_to, :database, :encrypted, :encrypted_custom, :no_database, :shards, :unprepared_statements ]
+  [ :default, :database, :no_database, :client, :collection, :encrypted ]
 end
 
 task :test do
@@ -36,11 +36,6 @@ end
 configs.each do |config|
   namespace :test do
     task config do
-      if config.to_s.start_with?("encrypted") && ENV["TARGET_DB"] == "postgres" && Rails::VERSION::MAJOR <= 7
-        puts "Skipping encrypted tests on PostgreSQL as binary encrypted columns are not supported by Rails yet"
-        next
-      end
-
       if config == :default
         sh("bin/rails test")
       else

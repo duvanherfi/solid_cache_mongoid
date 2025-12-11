@@ -2,9 +2,11 @@
 
 source "https://rubygems.org"
 
-gem "sqlite3"
-gem "mysql2"
-gem "pg"
+gem "mongoid"
+gem "ostruct"
+gem "ffi"
+gem "mongoid-locker"
+gem "mongo"
 gem "sprockets-rails"
 gem "appraisal"
 gem "railties", branch: "8-1-stable", git: "https://github.com/rails/rails.git"

@@ -6,9 +6,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 # Specify your gem's dependencies in solid_cache.gemspec.
 gemspec
 
-gem "sqlite3"
-gem "mysql2"
-gem "pg"
+gem "mongoid"
+gem "ostruct"
+gem "ffi"
+gem "mongoid-locker"
+gem "mongo"
 
 gem "sprockets-rails"
 

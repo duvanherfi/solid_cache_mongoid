@@ -4,7 +4,6 @@ module SolidCache
   class Store
     module Api
       DEFAULT_MAX_KEY_BYTESIZE = 1024
-      SQL_WILDCARD_CHARS = [ "_", "%" ]
 
       attr_reader :max_key_bytesize
 

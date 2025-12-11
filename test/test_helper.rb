@@ -4,8 +4,6 @@
 ENV["RAILS_ENV"] = "test"
 
 require_relative "../test/dummy/config/environment"
-ActiveRecord::Migrator.migrations_paths = [ File.expand_path("../test/dummy/db/migrate", __dir__) ]
-ActiveRecord::Migrator.migrations_paths << File.expand_path("../db/migrate", __dir__)
 require "rails/test_help"
 require "debug"
 require "mocha/minitest"
@@ -18,18 +16,10 @@ if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
   ActiveSupport::TestCase.fixtures :all
 end
 
-ActiveSupport::TestCase.use_transactional_tests = false
-
-if Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR == 0 && SolidCache.configuration.connects_to
-  SolidCache::Record.connecting_to(shard: SolidCache.configuration.shard_keys.first || :default)
-end
-
 class ActiveSupport::TestCase
   setup do
     @all_stores = []
-    SolidCache::Record.each_shard do
-      SolidCache::Entry.delete_all
-    end
+    SolidCache::Entry.delete_all
   end
 
   teardown do
@@ -52,7 +42,7 @@ class ActiveSupport::TestCase
     @cache.with_each_connection do
       SolidCache::Entry.uncached do
         SolidCache::Entry.all.each do |entry|
-          entry.update_columns(created_at: entry.created_at - distance)
+          entry.update_attributes(created_at: entry.created_at - distance)
         end
       end
     end
@@ -70,35 +60,13 @@ class ActiveSupport::TestCase
   end
 
   def uncached_entry_count
-    SolidCache::Record.each_shard.sum { SolidCache::Entry.uncached { SolidCache::Entry.count } }
-  end
-
-  def first_shard_key
-    default_database? ? :default : SolidCache.configuration.shard_keys.first
-  end
-
-  def second_shard_key
-    SolidCache.configuration.shard_keys.second
-  end
-
-  def single_database?
-    [ "config/cache_database.yml", "config/cache_no_database.yml", "config/cache_unprepared_statements.yml" ].include?(ENV["SOLID_CACHE_CONFIG"])
-  end
-
-  def default_database?
-    ENV["SOLID_CACHE_CONFIG"] == "config/cache_no_database.yml"
-  end
-
-  def shard_keys(cache, shard)
-    namespaced_keys = 100.times.map { |i| @cache.send(:normalize_key, "key#{i}", {}) }
-    shard_keys = cache.send(:connections).assign(namespaced_keys)[shard]
-    shard_keys.map { |key| key.delete_prefix("#{@namespace}:") }
+    SolidCache::Entry.uncached { SolidCache::Entry.count }
   end
 
   def emulating_timeouts
-    ar_methods = [ :select_all, :delete, :exec_insert_all ]
-    stub_matcher = ActiveRecord::Base.connection.class.any_instance
-    ar_methods.each { |method| stub_matcher.stubs(method).raises(ActiveRecord::StatementTimeout) }
+    ar_methods = [ :where, :delete_all ]
+    stub_matcher = SolidCache::Entry
+    ar_methods.each { |method| stub_matcher.stubs(method).raises(Mongo::Error::TimeoutError) }
     yield
   ensure
     ar_methods.each { |method| stub_matcher.unstub(method) }

@@ -10,3 +10,5 @@
 /test/dummy/storage/
 /test/dummy/tmp/
 /test/fixtures/tmp
+.idea
+Gemfile.lock

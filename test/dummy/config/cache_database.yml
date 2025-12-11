@@ -1,5 +1,5 @@
 default: &default
-  database: primary
+  database: solid_cache
 
   store_options:
     max_age: 3600

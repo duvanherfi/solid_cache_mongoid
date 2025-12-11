@@ -8,7 +8,7 @@ module SolidCache
       class_methods do
         def expire(count, max_age:, max_entries:, max_size:)
           if (ids = expiry_candidate_ids(count, max_age: max_age, max_entries: max_entries, max_size: max_size)).any?
-            delete(ids)
+            where(:id.in => ids).delete_all
           end
         end
 
@@ -34,7 +34,7 @@ module SolidCache
             retrieve_count = count * 3
 
             uncached do
-              candidates = order(:id).limit(retrieve_count)
+              candidates = order_by([:id, :asc]).limit(retrieve_count)
 
               candidate_ids = if cache_full
                 candidates.pluck(:id)

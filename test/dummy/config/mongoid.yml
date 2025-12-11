@@ -1,0 +1,25 @@
+development:
+  # Configure available database clients. (required)
+  clients:
+    # Defines the default client. (required)
+    default:
+      database: dummy_development
+      hosts:
+        - localhost:27017
+      options:
+
+  options:
+
+  driver_options:
+
+
+test:
+  clients:
+    default:
+      database: dummy_test
+      hosts:
+        - localhost:27017
+      options:
+        read:
+          mode: :primary
+        max_pool_size: 1

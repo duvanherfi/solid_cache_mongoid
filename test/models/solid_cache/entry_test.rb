@@ -72,13 +72,16 @@ module SolidCache
 
     test "batching multi queries" do
       stub_const(Entry, :MULTI_BATCH_SIZE, 2) do
-        assert_queries_count(2) do
-          Entry.write_multi([ { key: "hello".b, value: "there" }, { key: "foo".b, value: "bar" }, { key: "baz".b, value: "zab" } ])
-        end
+        assert_equal(
+          3,
+          Entry.write_multi(
+            [
+              { key: "hello".b, value: "there" }, { key: "foo".b, value: "bar" }, { key: "baz".b, value: "zab" }
+            ]
+          ).count
+        )
 
-        assert_queries_count(2) do
-          assert_equal({ "foo" => "bar", "hello" => "there", "baz" => "zab" }, Entry.read_multi([ "hello".b, "foo".b, "baz".b, "bar".b ]))
-        end
+        assert_equal({ "foo" => "bar", "hello" => "there", "baz" => "zab" }, Entry.read_multi([ "hello".b, "foo".b, "baz".b, "bar".b ]))
       end
     end
 

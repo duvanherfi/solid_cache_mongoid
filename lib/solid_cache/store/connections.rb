@@ -3,27 +3,9 @@
 module SolidCache
   class Store
     module Connections
-      attr_reader :shard_options
 
       def initialize(options = {})
         super(options)
-        if options[:clusters].present?
-          if options[:clusters].size > 1
-            raise ArgumentError, "Multiple clusters are no longer supported"
-          else
-            ActiveSupport.deprecator.warn(":clusters is deprecated, use :shards instead.")
-          end
-          @shard_options = options.fetch(:clusters).first[:shards]
-        elsif options[:cluster].present?
-          ActiveSupport.deprecator.warn(":cluster is deprecated, use :shards instead.")
-          @shard_options = options.fetch(:cluster, {})[:shards]
-        else
-          @shard_options = options.fetch(:shards, nil)
-        end
-
-        if [ Array, NilClass ].none? { |klass| @shard_options.is_a? klass }
-          raise ArgumentError, "`shards` is a `#{@shard_options.class.name}`, it should be Array or nil"
-        end
       end
 
       def with_each_connection(async: false, &block)
@@ -35,7 +17,7 @@ module SolidCache
       end
 
       def connections
-        @connections ||= SolidCache::Connections.from_config(@shard_options)
+        @connections ||= SolidCache::Connections.from_config
       end
 
       private

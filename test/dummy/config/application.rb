@@ -15,14 +15,5 @@ module Dummy
     config.action_controller.include_all_helpers = false
 
     config.cache_store = :solid_cache_store
-
-    config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
-
-    if ENV["SOLID_CACHE_CONFIG"] == "config/cache_encrypted_custom.yml"
-      config.solid_cache.encryption_context_properties = {
-        encryptor: ActiveRecord::Encryption::Encryptor.new,
-        message_serializer: ActiveRecord::Encryption::MessageSerializer.new
-      }
-    end
   end
 end

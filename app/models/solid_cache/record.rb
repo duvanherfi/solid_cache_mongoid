@@ -1,51 +1,74 @@
 # frozen_string_literal: true
 
 module SolidCache
-  class Record < ActiveRecord::Base
+  class Record
+    include Mongoid::Document
+    include Mongoid::Timestamps
+    include Mongoid::Locker
+
     NULL_INSTRUMENTER = ActiveSupport::Notifications::Instrumenter.new(ActiveSupport::Notifications::Fanout.new)
 
-    self.abstract_class = true
+    encrypt_with(key_id: ENV.fetch("SOLID_CACHE_KEY_ENCRYPT", nil) || Rails.application.secret_key_base) if SolidCache.configuration.encrypt?
 
-    connects_to(**SolidCache.configuration.connects_to) if SolidCache.configuration.connects_to
+    field :key, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
+    field :value, type: BSON::Binary, encrypt: SolidCache.configuration.encryption_context_properties
+    field :key_hash, type: Integer
+    field :byte_size, type: Integer
+    field :locking_name, type: String
+    field :locked_at, type: Time
+
+    index({ byte_size: 1 }, { background: true })
+    index({ key_hash: 1, byte_size: 1 }, { background: true })
+    index({ key_hash: 1 }, { unique: true, background: true })
+
+    store_in collection: SolidCache.configuration.collection if SolidCache.configuration.collection.present?
+    store_in client: SolidCache.configuration.client if SolidCache.configuration.client.present?
+    store_in database: SolidCache.configuration.database if SolidCache.configuration.database.present?
 
     class << self
       def disable_instrumentation(&block)
         with_instrumenter(NULL_INSTRUMENTER, &block)
       end
 
-      def with_instrumenter(instrumenter, &block)
-        with_connection do |connection|
-          if connection.respond_to?(:with_instrumenter)
-            connection.with_instrumenter(instrumenter, &block)
-          else
-            begin
-              old_instrumenter, ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter], instrumenter
-              block.call
-            ensure
-              ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = old_instrumenter
-            end
+      def with_instrumenter(instrumenter)
+        if ActiveSupport::Notifications.respond_to?(:instrumenter) && ActiveSupport::Notifications.respond_to?(:instrumenter=)
+          old = ActiveSupport::Notifications.instrumenter
+          ActiveSupport::Notifications.instrumenter = instrumenter
+          begin
+            yield
+          ensure
+            ActiveSupport::Notifications.instrumenter = old
+          end
+        else
+          # Fallback al comportamiento previo que usaba IsolatedExecutionState
+          old = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter]
+          ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = instrumenter
+          begin
+            yield
+          ensure
+            ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = old
           end
         end
       end
 
-      def with_shard(shard, &block)
-        if shard && SolidCache.configuration.sharded?
-          connected_to(shard: shard, role: default_role, prevent_writes: false, &block)
-        else
-          block.call
-        end
+      def without_query_cache(&block)
+        Mongo::QueryCache.uncached(&block)
       end
+      alias :uncached :without_query_cache
 
-      def each_shard(&block)
-        return to_enum(:each_shard) unless block_given?
+      def with_query_cache(&block)
+        Mongo::QueryCache.cache(&block)
+      end
+      alias :cache :with_query_cache
 
-        if SolidCache.configuration.sharded?
-          SolidCache.configuration.shard_keys.each do |shard|
-            Record.with_shard(shard, &block)
-          end
-        else
-          yield
-        end
+      def lease_connection
+        # Obtiene el cliente Mongo actual del modelo
+        client = self.mongo_client
+
+        # Asegura que hay una conexión disponible
+        client.reconnect unless client.cluster.connected?
+
+        yield client
       end
     end
   end

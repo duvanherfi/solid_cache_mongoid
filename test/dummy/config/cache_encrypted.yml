@@ -1,5 +1,5 @@
 default: &default
-  databases: [primary_shard_one, primary_shard_two, secondary_shard_one, secondary_shard_two]
+  database: solid_cache
   encrypt: true
 
   store_options:

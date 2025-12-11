@@ -9,18 +9,15 @@ module SolidCache
 
       def stats
         {
-          connections: connections.count,
-          connection_stats: connections_stats
+          connections: 1,
+          connection_stats: connection_stats
         }
       end
 
       private
-        def connections_stats
-          with_each_connection.to_h { |connection| [ Entry.current_shard, connection_stats ] }
-        end
 
         def connection_stats
-          oldest_created_at = Entry.order(:id).pick(:created_at)
+          oldest_created_at = Entry.order_by([:id, :asc]).pick(:created_at)
 
           {
             max_age: max_age,

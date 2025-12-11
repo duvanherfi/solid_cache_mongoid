@@ -29,25 +29,12 @@ jobs:
       matrix:
         ruby-version: ["3.2", "3.3", "3.4"]
         gemfile: [ rails_7_2, rails_8_0, rails_8_1, rails_main ]
-        database: [sqlite, postgres, mysql]
+        database: [mongoid]
     services:
-      redis:
-        image: redis
+      mongoid:
+        image: mongoid
         ports:
-          - 6379:6379
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_HOST_AUTH_METHOD: "trust"
-        ports:
-          - 55432:5432
-      mysql:
-        image: mysql:9
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-        ports:
-          - 33060:3306
-        options: --health-cmd "mysql -h localhost -e \"select now()\"" --health-interval 1s --health-timeout 5s --health-retries 30
+          - 27017:27017
     env:
       TARGET_DB: ${{ matrix.database }}
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile

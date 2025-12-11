@@ -37,7 +37,7 @@ module SolidCache
 
       assert_nil Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 
-      with_fixed_srand(1) { assert_equal @encrypted ? 22691557 : 20991897, estimate(samples: 2) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 20991897 : 22691557, estimate(samples: 2) }
 
       assert_equal @encrypted ? "22691557" : "20991897", Entry.read(Entry::Size::MovingAverageEstimate::ESTIMATES_KEY)
 

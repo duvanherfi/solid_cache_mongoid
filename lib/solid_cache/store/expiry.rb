@@ -39,7 +39,7 @@ module SolidCache
           if expiry_method == :job
             ExpiryJob
               .set(queue: expiry_queue)
-              .perform_later(expiry_batch_size, shard: Entry.current_shard, **max_options)
+              .perform_later(expiry_batch_size, **max_options)
           else
             async { Entry.expire(expiry_batch_size, **max_options) }
           end

@@ -29,7 +29,12 @@ module SolidCache
           attr_reader :estimate
 
           def previous_values
-            Entry.read(ESTIMATES_KEY).presence&.split("|")&.map(&:to_i) || []
+            value = Entry.read(ESTIMATES_KEY)
+            return [] unless value
+
+            # Convertir de BSON::Binary a string si es necesario
+            value_str = value.is_a?(BSON::Binary) ? value.data : value.to_s
+            value_str.presence&.split("|")&.map(&:to_i) || []
           end
 
           def latest_value

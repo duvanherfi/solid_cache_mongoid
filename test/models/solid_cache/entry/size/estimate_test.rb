@@ -35,29 +35,29 @@ module SolidCache
     test "test with gaps in records estimates" do
       values_lengths = with_fixed_srand(1) { 1000.times.map { (rand**2 * 1000).to_i } }
       write_entries(value_lengths: values_lengths)
-      first_mod = Entry.first.id % 3
-      Entry.where("id % 3 = #{first_mod}").delete_all
+      first_mod = Entry.first.id
+      Entry.where(:id.lte => first_mod).delete_all
 
-      assert_equal @encrypted ? 437752 : 324532, estimate(samples: 1000)
-      assert_equal @encrypted ? 438131 : 324741, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 437166 : 323946, estimate(samples: 334) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 462859 : 345103, estimate(samples: 100) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 453859 : 335770, estimate(samples: 50) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 401216 : 281944, estimate(samples: 10) }
+      assert_equal @encrypted ? 437752 : 480936, estimate(samples: 1000)
+      assert_equal @encrypted ? 438131 : 481341, estimate(samples: 500)
+      with_fixed_srand(1) { assert_equal @encrypted ? 437166 : 463969, estimate(samples: 334) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 462859 : 501183, estimate(samples: 100) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 453859 : 477176, estimate(samples: 50) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 401216 : 471413, estimate(samples: 10) }
     end
 
     test "test with more gaps in records estimates" do
       values_lengths = with_fixed_srand(1) { 1000.times.map { (rand**2 * 1000).to_i } }
       write_entries(value_lengths: values_lengths)
-      first_mod = Entry.first.id % 4
-      Entry.where("id % 4 != #{first_mod}").delete_all
+      first_mod = Entry.first.id
+      Entry.where(:id.lte => first_mod).delete_all
 
-      assert_equal @encrypted ? 162804 : 120304, estimate(samples: 1000)
-      assert_equal @encrypted ? 165348 : 121488, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 164704 : 121188, estimate(samples: 250) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 174266 : 126768, estimate(samples: 100) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 179794 : 132657, estimate(samples: 50) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 44016 : 25537, estimate(samples: 10) }
+      assert_equal @encrypted ? 480936 : 480936, estimate(samples: 1000)
+      assert_equal @encrypted ? 165348 : 481341, estimate(samples: 500)
+      with_fixed_srand(1) { assert_equal @encrypted ? 164704 : 476224, estimate(samples: 250) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 174266 : 501183, estimate(samples: 100) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 179794 : 477176, estimate(samples: 50) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 44016 : 471413, estimate(samples: 10) }
     end
 
     test "overestimate when all samples sizes are the same" do

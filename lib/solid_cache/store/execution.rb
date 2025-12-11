@@ -11,13 +11,9 @@ module SolidCache
 
       private
         def async(&block)
-          # Need current shard right now, not when block is called
-          current_shard = Entry.current_shard
           @background << ->() do
             wrap_in_rails_executor do
-              connections.with(current_shard) do
-                setup_instrumentation(&block)
-              end
+              setup_instrumentation(&block)
             end
           rescue Exception => exception
             error_handler&.call(method: :async, exception: exception, returning: nil)

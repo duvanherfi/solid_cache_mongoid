@@ -78,8 +78,17 @@ module SolidCache
 
           def outliers_size_count_and_cutoff
             @outlier_size_and_cutoff ||= Entry.uncached do
-              sum, count, min = Entry.largest_byte_sizes(samples).pick(Arel.sql("sum(byte_size), count(*), min(byte_size)"))
-              sum ? [sum, count, min] : [0, 0, nil]
+              largest = Entry.largest_byte_sizes(samples)
+
+              # Usar agregación de MongoDB para calcular sum, count y min
+              if largest.exists?
+                sum = largest.sum(:byte_size)
+                count = largest.count
+                min = largest.min(:byte_size)
+                [sum, count, min]
+              else
+                [0, 0, nil]
+              end
             end
           end
 

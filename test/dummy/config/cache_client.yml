@@ -1,5 +1,5 @@
 default: &default
-  database: primary_unprepared_statements
+  client: default
 
   store_options:
     max_age: 3600
