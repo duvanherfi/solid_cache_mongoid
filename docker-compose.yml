@@ -1,22 +1,15 @@
 version: "3.8"
 
 volumes:
-  mysql: {}
-  postgres: {}
+  mongoid: {}
 
 services:
-  postgres:
-    image: postgres:17
+  mongoid:
+    image: mongo:latest
     environment:
-      POSTGRES_HOST_AUTH_METHOD: "trust"
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
-      - postgres:/var/lib/postgres
-    ports: [ "127.0.0.1:55432:5432" ]
-  mysql:
-    image: mysql:9
-    environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-    volumes:
-      - mysql:/var/lib/mysql
-    ports: [ "127.0.0.1:33060:3306" ]
+      - mongoid:/var/lib/mongoid
+    ports: [ "127.0.0.1:27017:27017" ]
 

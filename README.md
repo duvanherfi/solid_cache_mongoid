@@ -11,44 +11,6 @@ Solid Cache is configured by default in new Rails 8 applications. But if you're 
 
 This will configure Solid Cache as the production cache store and create `config/cache.yml`.
 
-If your application uses `config.active_record.schema_format = :ruby` (the default), the installer creates `db/cache_schema.rb`.
-
-If your application uses `config.active_record.schema_format = :sql`, the installer creates `db/cache_structure.sql` with the appropriate SQL for your database adapter (PostgreSQL, MySQL, or SQLite).
-
-### Configuring the cache database
-
-You will then have to add the configuration for the cache database in `config/database.yml`. If you're using sqlite, it'll look like this:
-
-```yaml
-production:
-  primary:
-    <<: *default
-    database: storage/production.sqlite3
-  cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
-    migrations_paths: db/cache_migrate
-```
-
-...or if you're using MySQL/PostgreSQL/Trilogy:
-
-```yaml
-production:
-  primary: &primary_production
-    <<: *default
-    database: app_production
-    username: app
-    password: <%= ENV["APP_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: app_production_cache
-    migrations_paths: db/cache_migrate
-```
-
-### Finalizing installation
-
-After configuring `database.yml`, run `db:prepare` in production to ensure the cache database is created and the schema is loaded.
-
 ## Configuration
 
 Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
@@ -56,23 +18,27 @@ Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. 
 The format of the file is:
 
 ```yml
-default:
-  store_options: &default_store_options
-    max_age: <%= 60.days.to_i %>
-    namespace: <%= Rails.env %>
-  size_estimate_samples: 1000
-
-development: &development
-  database: cache
+default: &default
+  # database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
+  # collection: solid_cache_entries
+  # client: default
+  # encrypt: false
   store_options:
-    <<: *default_store_options
-    max_size: <%= 256.gigabytes %>
+    # Cap age of oldest cache entry to fulfill retention policies
+    # max_age: <%%= 60.days.to_i %>
+    max_size: <%%= 256.megabytes %>
+    namespace: <%%= Rails.env %>
 
-production: &production
-  databases: [production_cache1, production_cache2]
-  store_options:
-    <<: *default_store_options
-    max_size: <%= 256.gigabytes %>
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
+  <<: *default
+
 ```
 
 For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
@@ -83,46 +49,11 @@ After running `solid_cache:install`, `environments/production.rb` will replace y
 # config/environments/production.rb
 config.cache_store = :solid_cache_store
 ```
-
-### Connection configuration
-
-You can set one of `database`, `databases` and `connects_to` in the config file. They will be used to configure the cache databases in `SolidCache::Record#connects_to`.
-
-If `connects_to` is set, it will be passed directly.
-
-Setting `database` is shorthand for connecting to a single database:
-
-```yaml
-database: :cache_db
-
-# equivalent to
-connects_to:
-  database:
-    writing: :cache_db
-```
-
-And `databases` to `[cache_db, cache_db2]` configures multiple database shards:
-
-```yaml
-databases: [cache_db, cache_db2]
-
-# equivalent to
-connects_to:
-  shards:
-    cache_db1:
-      writing: :cache_db1
-    cache_db2:
-      writing: :cache_db2
-```
-
-If none of these are set, Solid Cache will use the `ActiveRecord::Base` connection pool. This means that cache reads and writes will be part of any wrapping database transaction.
-
 ### Engine configuration
 
 There are five options that can be set on the engine:
 
 - `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
-- `connects_to` - a custom connects to value for the abstract `SolidCache::Record` active record model. Required for sharding and/or using a separate cache database to the main app. This will overwrite any value set in `config/solid_cache.yml`
 - `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimate the size.
 - `encrypted` - whether cache values should be encrypted (see [Enabling encryption](#enabling-encryption))
 - `encryption_context_properties` - custom encryption context properties
@@ -153,8 +84,6 @@ Solid Cache supports these options in addition to the standard `ActiveSupport::C
 - `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
 - `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
 
-For more information on cache clusters, see [Sharding the cache](#sharding-the-cache)
-
 ## Cache expiry
 
 Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 50% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
@@ -171,37 +100,6 @@ Only triggering expiry when we write means that if the cache is idle, the backgr
 
 If you want the cache expiry to be run in a background job instead of a thread, you can set `expiry_method` to `:job`. This will enqueue a `SolidCache::ExpiryJob`.
 
-## Sharding the cache
-
-Solid Cache uses the [Maglev](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44824.pdf) consistent hashing scheme to shard the cache across multiple databases.
-
-To shard:
-
-1. Add the configuration for the database shards to database.yml.
-2. Configure the shards via `config.solid_cache.connects_to`.
-3. Pass the shards for the cache to use via the cluster option.
-
-For example:
-```yml
-# config/database.yml
-production:
-  cache_shard1:
-    database: cache1_production
-    host: cache1-db
-  cache_shard2:
-    database: cache2_production
-    host: cache2-db
-  cache_shard3:
-    database: cache3_production
-    host: cache3-db
-```
-
-```yaml
-# config/cache.yml
-production:
-  databases: [cache_shard1, cache_shard2, cache_shard3]
-```
-
 ## Enabling encryption
 
 To encrypt the cache values, you can add the encrypt property.
@@ -217,21 +115,15 @@ or
 config.solid_cache.encrypt = true
 ```
 
-You will need to set up your application to [use Active Record Encryption](https://guides.rubyonrails.org/active_record_encryption.html).
+You will need to set up your application to [use Active Record Encryption](https://www.mongodb.com/docs/mongoid/current/security/encryption).
 
 Solid Cache by default uses a custom encryptor and message serializer that are optimised for it.
-
-Firstly it disabled compression with the encryptor `ActiveRecord::Encryption::Encryptor.new(compress: false)` - the cache already compresses the data.
-Secondly it uses `ActiveRecord::Encryption::MessagePackMessageSerializer.new` as the serializer. This serializer can only be used for binary columns,
-but can store about 40% more data than the standard serializer.
-
 You can choose your own context properties instead if you prefer:
 
 ```ruby
 # application.rb
 config.solid_cache.encryption_context_properties = {
-  encryptor: ActiveRecord::Encryption::Encryptor.new,
-  message_serializer: ActiveRecord::Encryption::MessageSerializer.new
+  deterministic: false
 }
 ```
 
