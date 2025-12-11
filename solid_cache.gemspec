@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   end
 
   rails_version = ">= 7.2"
-  spec.add_dependency "mongoid", ">= 8.0"
+  spec.add_dependency "mongoid", ">= 9"
   spec.add_dependency "mongoid-locker"
   spec.add_dependency "mongo"
   spec.add_dependency "activejob", rails_version
