@@ -143,19 +143,17 @@ You can also run the tests against MySQL and PostgreSQL. First start up the data
 $ docker compose up -d
 ```
 
-Next, setup the database schema:
+Next, setup the database:
 
 ```shell
-$ TARGET_DB=mysql bin/rails db:setup
-$ TARGET_DB=postgres bin/rails db:setup
+$ bin/rails db:setup
 ```
 
 
-Then run the tests for the target database:
+Then run the tests:
 
 ```shell
-$ TARGET_DB=mysql bin/rake test
-$ TARGET_DB=postgres bin/rake test
+$ bin/rake test
 ```
 
 ### Testing with multiple Rails versions
@@ -185,12 +183,7 @@ Solid Cache is a FIFO (first in, first out) cache. While this is not as efficien
 A FIFO cache is much easier to manage:
 1. We don't need to track when items are read.
 2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
-3. By deleting from one end of the table and adding at the other end we can avoid fragmentation (on MySQL at least).
-
-
-## Upgrading
-
-**Upgrading from v0.3.0 or earlier? Please see [upgrading to version v0.4.x and beyond](upgrading_to_version_0.4.x.md)**
+3. By deleting from one end of the table and adding at the other end we can avoid fragmentation.
 
 ## License
 Solid Cache is licensed under MIT.

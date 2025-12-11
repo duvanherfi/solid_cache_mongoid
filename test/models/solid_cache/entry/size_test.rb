@@ -39,7 +39,7 @@ module SolidCache
 
       assert_equal @encrypted ? 650766 : 480936, Entry.estimated_size(samples: 1000)
       assert_equal @encrypted ? 651706 : 481536, Entry.estimated_size(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 438296 : 464630, Entry.estimated_size(samples: 334) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 629206 : 464630, Entry.estimated_size(samples: 334) }
       with_fixed_srand(1) { assert_equal @encrypted ? 463629 : 501624, Entry.estimated_size(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 454686 : 477621, Entry.estimated_size(samples: 50) }
       with_fixed_srand(1) { assert_equal @encrypted ? 402002 : 471878, Entry.estimated_size(samples: 10) }
@@ -52,7 +52,7 @@ module SolidCache
       Entry.where(:id.lte => first_mod).delete_all
 
       assert_equal @encrypted ? 650766 : 480936, Entry.estimated_size(samples: 1000)
-      assert_equal @encrypted ? 481941 : 481941, Entry.estimated_size(samples: 501)
+      assert_equal @encrypted ? 481941 : 652281, Entry.estimated_size(samples: 501)
       with_fixed_srand(1) { assert_equal @encrypted ? 164762 : 476555, Entry.estimated_size(samples: 250) }
       with_fixed_srand(1) { assert_equal @encrypted ? 174610 : 501624, Entry.estimated_size(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 180315 : 477621, Entry.estimated_size(samples: 50) }

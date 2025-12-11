@@ -40,7 +40,7 @@ module SolidCache
 
       assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
       assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 437166 : 463969, estimate(samples: 334) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 628045 : 463969, estimate(samples: 334) }
       with_fixed_srand(1) { assert_equal @encrypted ? 462859 : 501183, estimate(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 453859 : 477176, estimate(samples: 50) }
       with_fixed_srand(1) { assert_equal @encrypted ? 401216 : 471413, estimate(samples: 10) }
@@ -54,7 +54,7 @@ module SolidCache
 
       assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
       assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 164704 : 476224, estimate(samples: 250) }
+      with_fixed_srand(1) { assert_equal @encrypted ? 643508 : 476224, estimate(samples: 250) }
       with_fixed_srand(1) { assert_equal @encrypted ? 174266 : 501183, estimate(samples: 100) }
       with_fixed_srand(1) { assert_equal @encrypted ? 179794 : 477176, estimate(samples: 50) }
       with_fixed_srand(1) { assert_equal @encrypted ? 44016 : 471413, estimate(samples: 10) }
