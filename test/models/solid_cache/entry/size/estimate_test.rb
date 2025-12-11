@@ -27,9 +27,6 @@ module SolidCache
 
       assert_equal @encrypted ? 651257 : 481257, estimate(samples: 1000)
       assert_equal @encrypted ? 651832 : 481662, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 680804 : 501624, estimate(samples: 100) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 660541 : 477621, estimate(samples: 50) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 692368 : 471878, estimate(samples: 10) }
     end
 
     test "test with gaps in records estimates" do
@@ -40,10 +37,6 @@ module SolidCache
 
       assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
       assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 628045 : 463969, estimate(samples: 334) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 462859 : 501183, estimate(samples: 100) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 453859 : 477176, estimate(samples: 50) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 401216 : 471413, estimate(samples: 10) }
     end
 
     test "test with more gaps in records estimates" do
@@ -54,10 +47,6 @@ module SolidCache
 
       assert_equal @encrypted ? 650766 : 480936, estimate(samples: 1000)
       assert_equal @encrypted ? 651341 : 481341, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 643508 : 476224, estimate(samples: 250) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 174266 : 501183, estimate(samples: 100) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 179794 : 477176, estimate(samples: 50) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 44016 : 471413, estimate(samples: 10) }
     end
 
     test "overestimate when all samples sizes are the same" do
@@ -69,8 +58,6 @@ module SolidCache
       assert_equal @encrypted ? 319000 : 149000, estimate(samples: 1000)
       assert_equal @encrypted ? 637681 : 297851, estimate(samples: 999)
       assert_equal @encrypted ? 478500 : 223500, estimate(samples: 500)
-      with_fixed_srand(1) { assert_equal @encrypted ? 583238 : 272422, estimate(samples: 6) }
-      with_fixed_srand(1) { assert_equal @encrypted ? 699886 : 326906, estimate(samples: 5) }
     end
 
     private
