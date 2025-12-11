@@ -19,12 +19,12 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  rails_version = ">= 7.2"
+  rails_version = [">= 7.2", "< 8.1"]
   spec.add_dependency "mongoid", ">= 9"
   spec.add_dependency "mongoid-locker"
   spec.add_dependency "mongo"
-  spec.add_dependency "activejob", rails_version
-  spec.add_dependency "railties", rails_version
+  spec.add_dependency "activejob", *rails_version
+  spec.add_dependency "railties", *rails_version
   spec.add_development_dependency "debug"
   spec.add_development_dependency "mocha"
   spec.add_development_dependency "msgpack"
