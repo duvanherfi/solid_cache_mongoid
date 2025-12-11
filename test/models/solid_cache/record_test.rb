@@ -4,7 +4,6 @@ require "test_helper"
 
 module SolidCache
   class RecordTest < ActiveSupport::TestCase
-
     test "each_database" do
       database = SolidCache::Record.storage_options[:database]
       case ENV["SOLID_CACHE_CONFIG"]
