@@ -1,0 +1,19 @@
+name: release
+on:
+
+jobs:
+  release:
+    name: Release to rubygems
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4.1
+          bundler-cache: true
+      - name: Run Build
+        run: bundle exec rake build
+      - name: Publish to Rubygems
+        run: bundle exec rake release
