@@ -20,15 +20,15 @@ jobs:
         run: |
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git config --global user.name "${{ github.actor }}"
-#      - name: Save credentials
-#        run: |
-#          mkdir -p $HOME/.gem
-#          mkdir -p $HOME/.local/share/gem
-#          touch $HOME/.gem/credentials
-#          touch $HOME/.local/share/gem/credentials
-#          chmod 0600 $HOME/.gem/credentials
-#          chmod 0600 $HOME/.local/share/gem/credentials
-#          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.gem/credentials
-#          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.local/share/gem/credentials
+      - name: Save credentials
+        run: |
+          mkdir -p $HOME/.gem
+          mkdir -p $HOME/.local/share/gem
+          touch $HOME/.gem/credentials
+          touch $HOME/.local/share/gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          chmod 0600 $HOME/.local/share/gem/credentials
+          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.local/share/gem/credentials
       - name: Publish to Rubygems
-        run: RUBYGEMS_API_KEY="${{secrets.RUBYGEMS_API_KEY}}" bundle exec rake release
+        run: bundle exec rake release
