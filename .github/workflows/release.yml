@@ -31,6 +31,4 @@ jobs:
 #          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.gem/credentials
 #          printf -- "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}\n" > $HOME/.local/share/gem/credentials
       - name: Publish to Rubygems
-        run: bundle exec rake release
-        env:
-          RUBYGEMS_API_KEY: "${{secrets.RUBYGEMS_API_KEY}}"
+        run: RUBYGEMS_API_KEY="${{secrets.RUBYGEMS_API_KEY}}" bundle exec rake release
