@@ -3,7 +3,7 @@
 require "test_helper"
 require "active_support/testing/method_call_assertions"
 
-class SolidCache::StatsTest < ActiveSupport::TestCase
+class SolidCacheMongoid::StatsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::TimeHelpers
 
   setup do
@@ -26,7 +26,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     @cache.write("foo", 1)
     @cache.write("bar", 1)
 
-    SolidCache::Entry.update_all(created_at: Time.now - 20.minutes)
+    SolidCacheMongoid::Entry.update_all(created_at: Time.now - 20.minutes)
 
     expected_not_empty = {
       connections: 1,
@@ -51,7 +51,7 @@ class SolidCache::StatsTest < ActiveSupport::TestCase
     @cache.write("foo", 1)
     @cache.write("bar", 1)
 
-    SolidCache::Entry.update_all(created_at: Time.now - 20.minutes)
+    SolidCacheMongoid::Entry.update_all(created_at: Time.now - 20.minutes)
 
     stats = @cache.stats
 

@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-module SolidCache
+module SolidCacheMongoid
   class EntrySizeTest < ActiveSupport::TestCase
     setup do
-      @encrypted = SolidCache.configuration.encrypt?
+      @encrypted = SolidCacheMongoid.configuration.encrypt?
     end
 
     test "write and read cache entries" do

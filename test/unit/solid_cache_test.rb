@@ -45,7 +45,7 @@ class SolidCacheTest < ActiveSupport::TestCase
     assert_equal 100, cache.send(:normalize_key, SecureRandom.hex(200), {}).bytesize
   end
 
-  test "loads defaults from config/solid_cache.yml" do
+  test "loads defaults from config/solid_cache_mongoid.yml" do
     cache = lookup_store
     assert_equal 3600, cache.max_age
   end

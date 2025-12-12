@@ -8,14 +8,14 @@ then
   exit 1
 fi
 
-printf "# frozen_string_literal: true\n\nmodule SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache/version.rb
+printf "# frozen_string_literal: true\n\nmodule SolidCache\n  VERSION = \"$VERSION\"\nend\n" > ./lib/solid_cache_mongoid/version.rb
 bundle
 bundle exec appraisal
-git add Gemfile.lock lib/solid_cache/version.rb gemfiles/rails*
+git add Gemfile.lock lib/solid_cache_mongoid/version.rb gemfiles/rails*
 git commit -m "Bump version for $VERSION"
 git push
 git tag v$VERSION
 git push --tags
-gem build solid_cache.gemspec
-gem push "solid_cache-$VERSION.gem" --host https://rubygems.org
-rm "solid_cache-$VERSION.gem"
+gem build solid_cache_mongoid.gemspec
+gem push "solid_cache_mongoid-$VERSION.gem" --host https://rubygems.org
+rm "solid_cache_mongoid-$VERSION.gem"

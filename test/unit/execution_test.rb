@@ -3,7 +3,7 @@
 require "test_helper"
 require "active_support/testing/method_call_assertions"
 
-class SolidCache::ExecutionTest < ActiveSupport::TestCase
+class SolidCacheMongoid::ExecutionTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::TimeHelpers
 
   setup do
@@ -35,7 +35,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_uninstrumented
-    SolidCache::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
+    SolidCacheMongoid::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
 
     cache = lookup_store(expires_in: 60, active_record_instrumentation: false)
 
@@ -49,7 +49,7 @@ class SolidCache::ExecutionTest < ActiveSupport::TestCase
   end
 
   def test_no_connections_instrumented
-    SolidCache::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
+    SolidCacheMongoid::Entry.stubs(:write_multi).with(anything).raises(Mongo::Error::TimeoutError)
 
     cache = lookup_store(expires_in: 60)
 

@@ -3,9 +3,9 @@
 require "test_helper"
 require "generators/solid_cache/install/install_generator"
 
-module SolidCache
-  class SolidCache::InstallGeneratorTest < Rails::Generators::TestCase
-    tests SolidCache::InstallGenerator
+module SolidCacheMongoid
+  class SolidCacheMongoid::InstallGeneratorTest < Rails::Generators::TestCase
+    tests SolidCacheMongoid::InstallGenerator
 
     destination File.expand_path("../../../../../tmp", __dir__)
     setup :prepare_destination
@@ -19,10 +19,10 @@ module SolidCache
     test "generator updates environment config" do
       run_generator
       assert_file "#{destination_root}/config/cache.yml", expected_cache_config
-      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :memory_store\n/
-      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :null_store\n/
-      assert_file "#{destination_root}/config/environments/test.rb", /config.cache_store = :null_store\n/
-      assert_file "#{destination_root}/config/environments/production.rb", /config.cache_store = :solid_cache_store\n/
+      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :solid_cache_mongoid_store\n/
+      assert_file "#{destination_root}/config/environments/development.rb", /config.cache_store = :solid_cache_mongoid_store\n/
+      assert_file "#{destination_root}/config/environments/test.rb", /config.cache_store = :solid_cache_mongoid_store\n/
+      assert_file "#{destination_root}/config/environments/production.rb", /config.cache_store = :solid_cache_mongoid_store\n/
     end
 
     private

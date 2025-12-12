@@ -6,8 +6,8 @@ Solid Cache is a database-backed Active Support cache store that lets you keep a
 
 Solid Cache is configured by default in new Rails 8 applications. But if you're running an earlier version, you can add it manually following these steps:
 
-1. `bundle add solid_cache`
-2. `bin/rails solid_cache:install`
+1. `bundle add solid_cache_mongoid`
+2. `bin/rails solid_cache_mongoid:install`
 
 This will configure Solid Cache as the production cache store and create `config/cache.yml`.
 
@@ -47,7 +47,7 @@ After running `solid_cache:install`, `environments/production.rb` will replace y
 
 ```ruby
 # config/environments/production.rb
-config.cache_store = :solid_cache_store
+config.cache_store = :solid_cache_mongoid_store
 ```
 ### Engine configuration
 

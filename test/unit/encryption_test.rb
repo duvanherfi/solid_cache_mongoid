@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class SolidCache::EncryptionTest < ActiveSupport::TestCase
+class SolidCacheMongoid::EncryptionTest < ActiveSupport::TestCase
   setup do
     @cache = lookup_store
   end
@@ -37,10 +37,10 @@ class SolidCache::EncryptionTest < ActiveSupport::TestCase
 
   private
     def raw_first_value
-      SolidCache::Entry.first["value"].data
+      SolidCacheMongoid::Entry.first["value"].data
     end
 
     def first_value
-      SolidCache::Entry.first.value.data
+      SolidCacheMongoid::Entry.first.value.data
     end
 end

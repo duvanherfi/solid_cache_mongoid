@@ -19,9 +19,9 @@ end
 class ActiveSupport::TestCase
   setup do
     @all_stores = []
-    SolidCache::Entry.delete_all
-    SolidCache::Entry.remove_indexes
-    SolidCache::Entry.create_indexes
+    SolidCacheMongoid::Entry.delete_all
+    SolidCacheMongoid::Entry.remove_indexes
+    SolidCacheMongoid::Entry.create_indexes
   end
 
   teardown do
@@ -32,7 +32,7 @@ class ActiveSupport::TestCase
 
   def lookup_store(options = {})
     store_options = { namespace: @namespace }.merge(options)
-    ActiveSupport::Cache.lookup_store(:solid_cache_store, store_options).tap do |store|
+    ActiveSupport::Cache.lookup_store(:solid_cache_mongoid_store, store_options).tap do |store|
       @all_stores << store
     end
   end
@@ -41,8 +41,8 @@ class ActiveSupport::TestCase
   end
 
   def send_entries_back_in_time(distance)
-    SolidCache::Entry.uncached do
-      SolidCache::Entry.all.each do |entry|
+    SolidCacheMongoid::Entry.uncached do
+      SolidCacheMongoid::Entry.all.each do |entry|
         entry.update_attributes(created_at: entry.created_at - distance)
       end
     end
@@ -60,12 +60,12 @@ class ActiveSupport::TestCase
   end
 
   def uncached_entry_count
-    SolidCache::Entry.uncached { SolidCache::Entry.count }
+    SolidCacheMongoid::Entry.uncached { SolidCacheMongoid::Entry.count }
   end
 
   def emulating_timeouts
     ar_methods = [ :where, :delete_all ]
-    stub_matcher = SolidCache::Entry
+    stub_matcher = SolidCacheMongoid::Entry
     ar_methods.each { |method| stub_matcher.stubs(method).raises(Mongo::Error::TimeoutError) }
     yield
   ensure

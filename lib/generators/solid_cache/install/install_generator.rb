@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SolidCache::InstallGenerator < Rails::Generators::Base
+class SolidCacheMongoid::InstallGenerator < Rails::Generators::Base
   source_root File.expand_path("templates", __dir__)
 
   def copy_files
@@ -9,6 +9,12 @@ class SolidCache::InstallGenerator < Rails::Generators::Base
 
   def configure_cache_store_adapter
     gsub_file Pathname.new(destination_root).join("config/environments/production.rb"),
-      /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_store"
+      /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_mongoid_store"
+
+    gsub_file Pathname.new(destination_root).join("config/environments/development.rb"),
+      /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_mongoid_store"
+
+    gsub_file Pathname.new(destination_root).join("config/environments/test.rb"),
+      /(# )?config\.cache_store = (:.*)/, "config.cache_store = :solid_cache_mongoid_store"
   end
 end

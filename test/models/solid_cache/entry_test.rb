@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-module SolidCache
+module SolidCacheMongoid
   class EntryTest < ActiveSupport::TestCase
     test "write and read cache entries" do
       Entry.write("hello".b, "there")
@@ -53,7 +53,7 @@ module SolidCache
     end
 
     test "byte_size" do
-      if SolidCache.configuration.encrypt?
+      if SolidCacheMongoid.configuration.encrypt?
         Entry.write "hello".b, "test"
         assert_equal 319, Entry.uncached { Entry.last.byte_size }
         Entry.write "hello".b, "12345"

@@ -1,5 +1,5 @@
 default: &default
-  database: solid_cache
+  database: solid_cache_mongoid
   encrypt: true
   encryption_context_properties:
     deterministic: true
