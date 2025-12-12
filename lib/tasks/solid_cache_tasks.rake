@@ -12,7 +12,6 @@ require "solid_cache/version"
 
 desc "Pushing solid_cache_mongoid-#{SolidCache::VERSION}.gem to rubygems"
 task :release do
-
   package = "pkg/solid_cache_mongoid-#{SolidCache::VERSION}.gem"
   ::FURY_CMD = "RUBYGEMS_API_KEY=#{ENV["RUBYGEMS_API_KEY"]} gem push #{package}"
   ::ERROR_PACKAGE_NOT_FOUND = "Error: gem #{package} is not found"
@@ -24,4 +23,3 @@ task :release do
     exit 1
   end
 end
-
