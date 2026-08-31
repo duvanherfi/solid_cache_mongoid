@@ -42,7 +42,7 @@ module SolidCacheMongoid
             ActiveSupport::Notifications.instrumenter = old
           end
         else
-          # Fallback al comportamiento previo que usaba IsolatedExecutionState
+          # Fall back to the previous behaviour, which used IsolatedExecutionState
           old = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter]
           ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = instrumenter
           begin
@@ -64,10 +64,10 @@ module SolidCacheMongoid
       alias :cache :with_query_cache
 
       def lease_connection
-        # Obtiene el cliente Mongo actual del modelo
+        # The model's current Mongo client
         client = self.mongo_client
 
-        # Asegura que hay una conexión disponible
+        # Make sure a connection is available
         client.reconnect unless client.cluster.connected?
 
         yield client

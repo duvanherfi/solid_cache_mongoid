@@ -21,8 +21,9 @@ module SolidCacheMongoid
     # on key_hash and byte_size so we can grab a sum of the byte_sizes in a range of key_hash directly from that
     # index.
     #
-    # To decide how big the range should be, we use the difference between the smallest and largest database IDs as
-    # an estimate of the number of rows in the table. This should be a good estimate, because we delete rows in ID order
+    # To decide how big the range should be, we need the number of documents in the collection. Upstream Solid Cache
+    # subtracts the smallest primary key from the largest, which is cheap and accurate with an autoincrementing integer.
+    # ObjectIds cannot be subtracted that way, so here Entry.id_range counts the documents instead.
     #
     # We then calculate the fraction of the rows we want to sample by dividing the sample size by the estimated number
     # of rows.
@@ -38,7 +39,7 @@ module SolidCacheMongoid
     #    outliers_cutoff              OC = min(byte_size of N largest rows)
     #    outliers_size                OS = sum(byte_size of N largest rows)
     #
-    #    estimated number of rows     R = max(ID) - min(ID) + 1
+    #    estimated number of rows     R = number of documents in the collection
     #    sample_fraction              F = N / R
     #    sample_range_size            S = (Kmax - Kmin) * F
     #    sample range is              K1..K2 where K1 = Kmin + rand(Kmax - S) and K2 = K1 + S
@@ -80,7 +81,7 @@ module SolidCacheMongoid
             @outlier_size_and_cutoff ||= Entry.uncached do
               largest = Entry.largest_byte_sizes(samples)
 
-              # Usar agregación de MongoDB para calcular sum, count y min
+              # Let MongoDB aggregate the sum, count and min
               if largest.exists?
                 sum = largest.sum(:byte_size)
                 count = largest.count

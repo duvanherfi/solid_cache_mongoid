@@ -32,7 +32,7 @@ module SolidCacheMongoid
             value = Entry.read(ESTIMATES_KEY)
             return [] unless value
 
-            # Convertir de BSON::Binary a string si es necesario
+            # Unwrap BSON::Binary into a string when needed
             value_str = value.is_a?(BSON::Binary) ? value.data : value.to_s
             value_str.presence&.split("|")&.map(&:to_i) || []
           end

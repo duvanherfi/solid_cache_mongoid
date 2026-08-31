@@ -28,7 +28,7 @@ module SolidCacheMongoid
         without_query_cache do
           payloads.each_slice(MULTI_BATCH_SIZE).each do |payload_batch|
             add_key_hash_and_byte_size(payload_batch).each do |payload|
-              # Convertir key y value a BSON::Binary
+              # Store key and value as BSON::Binary
               key = payload.delete(:key)
               value = payload.delete(:value)
               obj = where(key_hash: payload[:key_hash]).first_or_initialize
@@ -54,7 +54,7 @@ module SolidCacheMongoid
               where(:key_hash.in => key_hashes)
                 .only(:key, :value)
                 .each do |entry|
-                  # Convertir BSON::Binary de vuelta a string
+                  # Unwrap BSON::Binary back into a string
                   key_str = entry.key.data
                   value_str = entry.value.data
                   results[key_str] = value_str
