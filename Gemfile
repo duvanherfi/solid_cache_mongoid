@@ -27,3 +27,4 @@ group :rubocop do
   gem "rubocop-rails", require: false
   gem "rubocop-md", require: false
 end
+gem "minitest", "~> 5.25"
