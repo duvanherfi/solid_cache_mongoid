@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "generators/solid_cache/install/install_generator"
+require "generators/solid_cache_mongoid/install/install_generator"
 
 module SolidCacheMongoid
   class SolidCacheMongoid::InstallGeneratorTest < Rails::Generators::TestCase
     tests SolidCacheMongoid::InstallGenerator
 
-    destination File.expand_path("../../../../../tmp", __dir__)
+    destination File.expand_path("../../../../tmp", __dir__)
     setup :prepare_destination
 
     setup do
-      dummy_app_fixture = File.expand_path("../../../../fixtures/generators/dummy_app", __dir__)
+      dummy_app_fixture = File.expand_path("../../../fixtures/generators/dummy_app", __dir__)
       files = Dir.glob("#{dummy_app_fixture}/*")
       FileUtils.cp_r(files, destination_root)
     end
