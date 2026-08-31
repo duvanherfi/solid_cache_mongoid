@@ -29,7 +29,7 @@ module SolidCacheMongoid
       def expected_cache_config
         <<~YAML
           default: &default
-            # database: solid_cache
+            # database: solid_cache_mongoid
             # collection: solid_cache_entries
             # client: default
             # encrypt: false
@@ -46,7 +46,7 @@ module SolidCacheMongoid
             <<: *default
 
           production:
-            database: solid_cache
+            database: solid_cache_mongoid
             <<: *default
         YAML
       end

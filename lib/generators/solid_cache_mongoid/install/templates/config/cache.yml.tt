@@ -1,5 +1,5 @@
 default: &default
-  # database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
+  # database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache_mongoid") %>
   # collection: solid_cache_entries
   # client: default
   # encrypt: false
@@ -16,5 +16,5 @@ test:
   <<: *default
 
 production:
-  database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
+  database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache_mongoid") %>
   <<: *default
