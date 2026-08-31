@@ -1,189 +1,163 @@
-# Solid Cache
+# Solid Cache for Mongoid
 
-Solid Cache is a database-backed Active Support cache store that lets you keep a much larger cache than is typically possible with traditional memory-only Redis or Memcached stores. This is thanks to the speed of modern SSD drives, which make the access-time penalty of using disk vs RAM insignificant for most caching purposes. Simply put, you're now usually better off keeping a huge cache on disk rather than a small cache in memory.
+[![Gem Version](https://img.shields.io/gem/v/solid_cache_mongoid?style=flat-square)](https://rubygems.org/gems/solid_cache_mongoid)
+[![Downloads](https://img.shields.io/gem/dt/solid_cache_mongoid?style=flat-square)](https://rubygems.org/gems/solid_cache_mongoid)
+[![License](https://img.shields.io/github/license/duvanherfi/solid_cache_mongoid?style=flat-square)](MIT-LICENSE)
+
+A database-backed `ActiveSupport::Cache::Store` for Rails applications that run
+on **MongoDB**.
+
+Rails 8 ships [Solid Cache](https://github.com/rails/solid_cache), which trades
+RAM for disk: modern SSDs are fast enough that a large cache on disk beats a
+small cache in memory for most workloads. But Solid Cache is built on Active
+Record. An application backed by Mongoid cannot use it, and gets pushed onto
+Redis or Memcached for caching alone — one more service to run, pay for, and be
+paged about.
+
+This is Solid Cache rewritten on Mongoid, so those applications can cache
+against the database they already have.
 
 ## Installation
 
-Solid Cache is configured by default in new Rails 8 applications. But if you're running an earlier version, you can add it manually following these steps:
+```ruby
+# Gemfile
+gem "solid_cache_mongoid"
+```
 
-1. `bundle add solid_cache_mongoid`
-2. `bin/rails solid_cache_mongoid:install`
+```sh
+bundle install
+bin/rails generate solid_cache_mongoid:install
+```
 
-This will configure Solid Cache as the production cache store and create `config/cache.yml`.
+The generator writes `config/cache.yml` and points `config.cache_store` at
+`:solid_cache_mongoid_store` in development, test and production.
+
+There is no migration to run. The collection is created on first write and the
+indexes are declared on the model — a unique index on `key_hash` for lookups,
+plus `byte_size` and a compound `key_hash + byte_size` used by size estimation.
+
+Requires Rails >= 7.2 (< 8.1) and Mongoid >= 9.
 
 ## Configuration
 
-Configuration will be read from `config/cache.yml` or `config/solid_cache.yml`. You can change the location of the config file by setting the `SOLID_CACHE_CONFIG` env variable.
+The cache always lives in its own Mongo database — `solid_cache_mongoid` unless
+you name another one — in a `solid_cache_entries` collection. It never shares
+the application's database, so cache traffic and application traffic can be
+pointed at different clients, and dropping the cache can never touch business
+data.
 
-The format of the file is:
+`config/cache.yml`:
 
-```yml
+```yaml
 default: &default
-  # database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
-  # collection: solid_cache_entries
-  # client: default
-  # encrypt: false
+  database: solid_cache_mongoid
   store_options:
-    # Cap age of oldest cache entry to fulfill retention policies
-    # max_age: <%%= 60.days.to_i %>
-    max_size: <%%= 256.megabytes %>
-    namespace: <%%= Rails.env %>
+    max_age: <%= 60.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
 
 development:
   <<: *default
 
-test:
-  <<: *default
-
 production:
-  database: <%= ENV.fetch("SOLID_CACHE_DATABASE", "solid_cache") %>
   <<: *default
-
 ```
 
-For the full list of keys for `store_options` see [Cache configuration](#cache-configuration). Any options passed to the cache lookup will overwrite those specified here.
+Top-level options:
 
-After running `solid_cache:install`, `environments/production.rb` will replace your cache store with Solid Cache, but you can also do this manually:
+| Option | Default | What it does |
+|---|---|---|
+| `database` | `solid_cache_mongoid` | Mongo database holding the cache. |
+| `collection` | `solid_cache_entries` | Collection name. |
+| `client` | — | Mongoid client to use, if not the default one. |
+| `encrypt` | `false` | Encrypt keys and values at rest. |
+| `encryption_context_properties` | `{ deterministic: false }` | Passed to Mongoid encryption. |
+| `size_estimate_samples` | `10_000` | Documents sampled when estimating cache size. |
 
-```ruby
-# config/environments/production.rb
-config.cache_store = :solid_cache_mongoid_store
-```
-### Engine configuration
+`store_options` are handed to the cache store itself: `max_age`, `max_size`,
+`max_entries`, `namespace`, `expiry_batch_size`, `expiry_method`,
+`expiry_queue`.
 
-There are five options that can be set on the engine:
+### Encryption at rest
 
-- `executor` - the [Rails executor](https://guides.rubyonrails.org/threading_and_code_execution.html#executor) used to wrap asynchronous operations, defaults to the app executor
-- `size_estimate_samples` - if `max_size` is set on the cache, the number of the samples used to estimate the size.
-- `encrypted` - whether cache values should be encrypted (see [Enabling encryption](#enabling-encryption))
-- `encryption_context_properties` - custom encryption context properties
+Setting `encrypt: true` turns on Mongoid field encryption for `key` and
+`value`, keyed from `SOLID_CACHE_KEY_ENCRYPT` or, absent that, the
+application's `secret_key_base`. Encryption is non-deterministic by default:
+the same value encrypts differently each time, so an attacker reading the
+collection cannot tell which entries hold the same content.
 
-These can be set in your Rails configuration:
+## How expiry works
 
-```ruby
-Rails.application.configure do
-  config.solid_cache.size_estimate_samples = 1000
-end
-```
+Expiry is not a cron job. Writes trigger it probabilistically, so the cache
+trims itself in proportion to how hard it is being used and an idle
+application does no work at all.
 
-### Cache configuration
+Each pass asks for three times as many candidates as it intends to delete and
+then randomly samples down to the real count. That is deliberate: with several
+workers expiring concurrently, taking the first N of an ordered list means
+every worker fights over the same documents. Oversampling and choosing at
+random keeps their working sets mostly disjoint.
 
-Solid Cache supports these options in addition to the standard `ActiveSupport::Cache::Store` options:
+Candidates are ordered by `_id`. A BSON `ObjectId` begins with a 4-byte
+timestamp, so `_id` order is creation order — the same property upstream gets
+from an autoincrementing primary key — which means age-based expiry needs no
+index on `created_at`.
 
-- `error_handler` - a Proc to call to handle any transient database errors that are raised (default: log errors as warnings)
-- `expiry_batch_size` - the batch size to use when deleting old records (default: `100`)
-- `expiry_method` - what expiry method to use `thread` or `job` (default: `thread`)
-- `expiry_queue` - which queue to add expiry jobs to (default: `default`)
-- `max_age` - the maximum age of entries in the cache (default: `2.weeks.to_i`). Can be set to `nil`, but this is not recommended unless using `max_entries` to limit the size of the cache.
-- `max_entries` - the maximum number of entries allowed in the cache (default: `nil`, meaning no limit)
-- `max_size` - the maximum size of the cache entries (default `nil`, meaning no limit)
-- `cluster` - (deprecated) a Hash of options for the cache database cluster, e.g `{ shards: [:database1, :database2, :database3] }`
-- `clusters` - (deprecated) an Array of Hashes for multiple cache clusters (ignored if `:cluster` is set)
-- `shards` - an Array of databases
-- `active_record_instrumentation` - whether to instrument the cache's queries (default: `true`)
-- `clear_with` - clear the cache with `:truncate` or `:delete` (default `truncate`, except for when `Rails.env.test?` then `delete`)
-- `max_key_bytesize` - the maximum size of a normalized key in bytes (default `1024`)
+## What is different from upstream Solid Cache
 
-## Cache expiry
+The port is not a search-and-replace of `ApplicationRecord` for a Mongoid
+model. The parts of Solid Cache that lean on SQL semantics had to be rebuilt.
 
-Solid Cache tracks writes to the cache. For every write it increments a counter by 1. Once the counter reaches 50% of the `expiry_batch_size` it adds a task to run on a background thread. That task will:
+**Locking.** Upstream uses Active Record transactions and database advisory
+locks so concurrent expiry passes do not collide. MongoDB has no advisory
+locks, so this uses [`mongoid-locker`](https://github.com/mongoid/mongoid-locker),
+which takes a document-level lock through `locking_name` and `locked_at`
+fields on the entry itself.
 
-1. Check if we have exceeded the `max_entries` or `max_size` values (if set).
-   The current entries are estimated by subtracting the max and min IDs from the `SolidCache::Entry` table.
-   The current size is estimated by sampling the entry `byte_size` columns.
-2. If we have, it will delete `expiry_batch_size` entries.
-3. If not, it will delete up to `expiry_batch_size` entries, provided they are all older than `max_age`.
+**Binary storage.** Keys and values are `BSON::Binary`, not SQL `BLOB`
+columns, and are unwrapped on read. Serialized cache values are arbitrary
+bytes; letting BSON infer a type would corrupt them.
 
-Expiring when we reach 50% of the batch size allows us to expire records from the cache faster than we write to it when we need to reduce the cache size.
+**Key hashing.** Lookups match on a 64-bit hash of the key, clamped to
+`-(2**63)..(2**63 - 1)` so it fits BSON's `int64`. The index stays small and
+fixed-width regardless of how long the application's cache keys are. The hash
+is also uniformly distributed, which is what makes the sampling below work.
 
-Only triggering expiry when we write means that if the cache is idle, the background thread is also idle.
+**Row counting.** Upstream estimates how many rows the table holds by
+subtracting the smallest primary key from the largest — cheap and accurate
+with an autoincrementing integer. ObjectIds are not subtractable that way, so
+this port counts documents instead.
 
-If you want the cache expiry to be run in a background job instead of a thread, you can set `expiry_method` to `:job`. This will enqueue a `SolidCache::ExpiryJob`.
+**Query cache.** `without_query_cache` maps onto `Mongo::QueryCache.uncached`
+rather than Active Record's connection-level query cache.
 
-## Enabling encryption
+**Sharding.** Upstream can spread the cache across several databases through
+`connects_to`. This port runs against a single unmanaged connection.
+Applications that need to shard should shard in MongoDB.
 
-To encrypt the cache values, you can add the encrypt property.
+## Size estimation
 
-```yaml
-# config/cache.yml
-production:
-  encrypt: true
-```
-or
-```ruby
-# application.rb
-config.solid_cache.encrypt = true
-```
+Storing a `byte_size` per document makes the total cache size estimable
+without scanning the collection:
 
-You will need to set up your application to [use Active Record Encryption](https://www.mongodb.com/docs/mongoid/current/security/encryption).
+1. Take the N largest documents by `byte_size` — there is an index for it — and
+   sum them exactly. These are the outliers that would otherwise skew any
+   sample.
+2. Use the smallest of those as a cutoff, and sample the rest through a random
+   window of the `key_hash` range. Because `key_hash` is uniformly distributed
+   and indexed together with `byte_size`, the sum comes straight out of the
+   index.
+3. Scale the sampled sum back up by the sampling fraction and add the outliers.
 
-Solid Cache by default uses a custom encryptor and message serializer that are optimised for it.
-You can choose your own context properties instead if you prefer:
+The result is an estimate whose cost does not grow with the size of the cache.
 
-```ruby
-# application.rb
-config.solid_cache.encryption_context_properties = {
-  deterministic: false
-}
-```
+## Batching
 
-## Index size limits
-The Solid Cache migrations try to create an index with 1024 byte entries. If that is too big for your database, you should:
+`read_multi` and `write_multi` slice their input into batches of 1000, so a
+wide `fetch_multi` costs a handful of round trips instead of one per key.
 
-1. Edit the index size in the migration.
-2. Set `max_key_bytesize` on your cache to the new value.
+## Credit
 
-## Development
-
-Run the tests with `bin/rake test`. By default, these will run against SQLite.
-
-You can also run the tests against MySQL and PostgreSQL. First start up the databases:
-
-```shell
-$ docker compose up -d
-```
-
-Next, setup the database:
-
-```shell
-$ bin/rails db:setup
-```
-
-
-Then run the tests:
-
-```shell
-$ bin/rake test
-```
-
-### Testing with multiple Rails versions
-
-Solid Cache relies on [appraisal](https://github.com/thoughtbot/appraisal/tree/main) to test
-multiple Rails versions.
-
-To run a test for a specific version run:
-
-```shell
-bundle exec appraisal rails-7-1 bin/rake test
-```
-
-After updating the dependencies in the `Gemfile` please run:
-
-```shell
-$ bundle
-$ appraisal update
-```
-
-This ensures that all the Rails versions dependencies are updated.
-
-## Implementation
-
-Solid Cache is a FIFO (first in, first out) cache. While this is not as efficient as an LRU (least recently used) cache, it is mitigated by the longer cache lifespan.
-
-A FIFO cache is much easier to manage:
-1. We don't need to track when items are read.
-2. We can estimate and control the cache size by comparing the maximum and minimum IDs.
-3. By deleting from one end of the table and adding at the other end we can avoid fragmentation.
-
-## License
-Solid Cache is licensed under MIT.
+Original Solid Cache by [Donal McBreen](https://github.com/djmb) and 37signals.
+Mongoid port by [Duvan Hernandez](https://github.com/duvanherfi). MIT licensed,
+same as upstream.
